@@ -11,6 +11,8 @@ services:
         value: "false"
       - key: APP_KEY
         generateValue: true
+      - key: DB_CONNECTION
+        value: sqlite
       - key: LOG_CHANNEL
         value: stderr
       - key: APP_URL

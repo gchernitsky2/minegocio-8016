@@ -8,7 +8,10 @@ use App\Filament\Resources\ExpenseResource\Pages;
 use App\Models\Expense;
 use Filament\Actions;
 use Filament\Forms;
+use Filament\Infolists;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -31,9 +34,9 @@ class ExpenseResource extends Resource
     {
         return $schema
             ->components([
-                Forms\Components\Section::make('Datos del gasto')
-                    ->icon('heroicon-o-credit-card')
+                Section::make()
                     ->columns(2)
+                    ->compact()
                     ->schema([
                         Forms\Components\TextInput::make('amount')
                             ->label('Monto')
@@ -63,11 +66,10 @@ class ExpenseResource extends Resource
                             ->native(false)
                             ->displayFormat('d/m/Y')
                             ->maxDate(now()),
-                        Forms\Components\Textarea::make('description')
+                        Forms\Components\TextInput::make('description')
                             ->label('Descripcion')
-                            ->placeholder('Ej: Pago de renta, compra materiales...')
-                            ->maxLength(255)
-                            ->rows(2),
+                            ->placeholder('Ej: Pago de renta...')
+                            ->maxLength(255),
                     ]),
             ]);
     }
@@ -86,8 +88,7 @@ class ExpenseResource extends Resource
                     ->money('MXN')
                     ->sortable()
                     ->color('danger')
-                    ->weight('bold')
-                    ->size('lg'),
+                    ->weight('bold'),
                 Tables\Columns\TextColumn::make('category.name')
                     ->label('Categoria')
                     ->badge()
@@ -130,8 +131,45 @@ class ExpenseResource extends Resource
                     }),
             ])
             ->actions([
+                Actions\ViewAction::make()
+                    ->iconButton()
+                    ->modalHeading('Detalle de Gasto')
+                    ->infolist([
+                        Group::make([
+                            Infolists\Components\TextEntry::make('date')
+                                ->label('Fecha')
+                                ->date('d/m/Y')
+                                ->icon('heroicon-m-calendar')
+                                ->iconColor('primary'),
+                            Infolists\Components\TextEntry::make('amount')
+                                ->label('Monto')
+                                ->money('MXN')
+                                ->icon('heroicon-m-credit-card')
+                                ->iconColor('danger')
+                                ->size('lg')
+                                ->weight('bold')
+                                ->color('danger'),
+                            Infolists\Components\TextEntry::make('category.name')
+                                ->label('Categoria')
+                                ->badge()
+                                ->color('info')
+                                ->icon('heroicon-m-tag')
+                                ->iconColor('info'),
+                            Infolists\Components\TextEntry::make('description')
+                                ->label('Descripcion')
+                                ->placeholder('Sin descripcion')
+                                ->icon('heroicon-m-document-text')
+                                ->iconColor('gray'),
+                            Infolists\Components\TextEntry::make('created_at')
+                                ->label('Registrado')
+                                ->dateTime('d/m/Y H:i')
+                                ->icon('heroicon-m-clock')
+                                ->iconColor('gray'),
+                        ])->columns(2),
+                    ]),
                 Actions\EditAction::make()
-                    ->iconButton(),
+                    ->iconButton()
+                    ->modalHeading('Editar Gasto'),
                 Actions\DeleteAction::make()
                     ->iconButton(),
             ])

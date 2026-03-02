@@ -9,6 +9,7 @@ use App\Models\ExpenseCategory;
 use Filament\Actions;
 use Filament\Forms;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -33,7 +34,7 @@ class ExpenseCategoryResource extends Resource
     {
         return $schema
             ->components([
-                Forms\Components\Section::make('Categoria de gasto')
+                Section::make('Categoria de gasto')
                     ->icon('heroicon-o-tag')
                     ->schema([
                         Forms\Components\TextInput::make('name')

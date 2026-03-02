@@ -8,7 +8,10 @@ use App\Filament\Resources\SaleResource\Pages;
 use App\Models\Sale;
 use Filament\Actions;
 use Filament\Forms;
+use Filament\Infolists;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -31,9 +34,9 @@ class SaleResource extends Resource
     {
         return $schema
             ->components([
-                Forms\Components\Section::make('Datos de la venta')
-                    ->icon('heroicon-o-banknotes')
-                    ->columns(2)
+                Section::make()
+                    ->columns(3)
+                    ->compact()
                     ->schema([
                         Forms\Components\TextInput::make('amount')
                             ->label('Monto')
@@ -51,12 +54,10 @@ class SaleResource extends Resource
                             ->native(false)
                             ->displayFormat('d/m/Y')
                             ->maxDate(now()),
-                        Forms\Components\Textarea::make('description')
+                        Forms\Components\TextInput::make('description')
                             ->label('Descripcion')
-                            ->placeholder('Ej: Venta mostrador, pedido cliente...')
-                            ->maxLength(255)
-                            ->rows(2)
-                            ->columnSpanFull(),
+                            ->placeholder('Ej: Venta mostrador...')
+                            ->maxLength(255),
                     ]),
             ]);
     }
@@ -75,8 +76,7 @@ class SaleResource extends Resource
                     ->money('MXN')
                     ->sortable()
                     ->color('success')
-                    ->weight('bold')
-                    ->size('lg'),
+                    ->weight('bold'),
                 Tables\Columns\TextColumn::make('description')
                     ->label('Descripcion')
                     ->limit(60)
@@ -109,8 +109,40 @@ class SaleResource extends Resource
                     }),
             ])
             ->actions([
+                Actions\ViewAction::make()
+                    ->iconButton()
+                    ->modalHeading('Detalle de Venta')
+                    ->infolist([
+                        Group::make([
+                            Infolists\Components\TextEntry::make('date')
+                                ->label('Fecha')
+                                ->date('d/m/Y')
+                                ->icon('heroicon-m-calendar')
+                                ->iconColor('primary'),
+                            Infolists\Components\TextEntry::make('amount')
+                                ->label('Monto')
+                                ->money('MXN')
+                                ->icon('heroicon-m-banknotes')
+                                ->iconColor('success')
+                                ->size('lg')
+                                ->weight('bold')
+                                ->color('success'),
+                            Infolists\Components\TextEntry::make('description')
+                                ->label('Descripcion')
+                                ->placeholder('Sin descripcion')
+                                ->icon('heroicon-m-document-text')
+                                ->iconColor('gray')
+                                ->columnSpanFull(),
+                            Infolists\Components\TextEntry::make('created_at')
+                                ->label('Registrado')
+                                ->dateTime('d/m/Y H:i')
+                                ->icon('heroicon-m-clock')
+                                ->iconColor('gray'),
+                        ])->columns(2),
+                    ]),
                 Actions\EditAction::make()
-                    ->iconButton(),
+                    ->iconButton()
+                    ->modalHeading('Editar Venta'),
                 Actions\DeleteAction::make()
                     ->iconButton(),
             ])

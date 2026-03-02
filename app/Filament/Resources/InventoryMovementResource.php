@@ -8,7 +8,10 @@ use App\Filament\Resources\InventoryMovementResource\Pages;
 use App\Models\InventoryMovement;
 use Filament\Actions;
 use Filament\Forms;
+use Filament\Infolists;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -33,7 +36,7 @@ class InventoryMovementResource extends Resource
     {
         return $schema
             ->components([
-                Forms\Components\Section::make('Movimiento de inventario')
+                Section::make('Movimiento de inventario')
                     ->icon('heroicon-o-arrows-right-left')
                     ->columns(2)
                     ->schema([
@@ -131,6 +134,40 @@ class InventoryMovementResource extends Resource
                     ->preload(),
             ])
             ->actions([
+                Actions\ViewAction::make()
+                    ->iconButton()
+                    ->modalHeading('Detalle de Movimiento')
+                    ->infolist([
+                        Group::make([
+                            Infolists\Components\TextEntry::make('date')
+                                ->label('Fecha')
+                                ->date('d/m/Y')
+                                ->icon('heroicon-m-calendar')
+                                ->iconColor('primary'),
+                            Infolists\Components\TextEntry::make('product.name')
+                                ->label('Producto')
+                                ->icon('heroicon-m-cube')
+                                ->iconColor('primary')
+                                ->weight('bold'),
+                            Infolists\Components\TextEntry::make('type')
+                                ->label('Tipo')
+                                ->badge()
+                                ->formatStateUsing(fn (string $state): string => ucfirst($state))
+                                ->color(fn (string $state): string => $state === 'entrada' ? 'success' : 'danger')
+                                ->icon(fn (string $state): string => $state === 'entrada' ? 'heroicon-m-arrow-down-tray' : 'heroicon-m-arrow-up-tray'),
+                            Infolists\Components\TextEntry::make('quantity')
+                                ->label('Cantidad')
+                                ->weight('bold')
+                                ->color(fn (InventoryMovement $record): string => $record->type === 'entrada' ? 'success' : 'danger')
+                                ->formatStateUsing(fn (InventoryMovement $record): string => ($record->type === 'entrada' ? '+' : '-') . $record->quantity),
+                            Infolists\Components\TextEntry::make('reason')
+                                ->label('Motivo')
+                                ->placeholder('Sin motivo')
+                                ->icon('heroicon-m-document-text')
+                                ->iconColor('gray')
+                                ->columnSpanFull(),
+                        ])->columns(2),
+                    ]),
                 Actions\DeleteAction::make()
                     ->iconButton(),
             ])

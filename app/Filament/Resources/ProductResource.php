@@ -8,7 +8,10 @@ use App\Filament\Resources\ProductResource\Pages;
 use App\Models\Product;
 use Filament\Actions;
 use Filament\Forms;
+use Filament\Infolists;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -33,7 +36,7 @@ class ProductResource extends Resource
     {
         return $schema
             ->components([
-                Forms\Components\Section::make('Informacion del producto')
+                Section::make('Informacion del producto')
                     ->icon('heroicon-o-cube')
                     ->columns(2)
                     ->schema([
@@ -58,7 +61,7 @@ class ProductResource extends Resource
                             ->visibleOn('edit')
                             ->helperText('Se actualiza con movimientos de inventario'),
                     ]),
-                Forms\Components\Section::make('Precios')
+                Section::make('Precios')
                     ->icon('heroicon-o-currency-dollar')
                     ->columns(2)
                     ->schema([
@@ -132,6 +135,60 @@ class ProductResource extends Resource
                     ->query(fn ($query) => $query->lowStock()),
             ])
             ->actions([
+                Actions\ViewAction::make()
+                    ->iconButton()
+                    ->modalHeading('Detalle de Producto')
+                    ->infolist([
+                        Group::make([
+                            Infolists\Components\TextEntry::make('name')
+                                ->label('Producto')
+                                ->icon('heroicon-m-cube')
+                                ->iconColor('primary')
+                                ->weight('bold')
+                                ->columnSpanFull(),
+                            Infolists\Components\TextEntry::make('sku')
+                                ->label('SKU')
+                                ->badge()
+                                ->color('gray')
+                                ->placeholder('-'),
+                            Infolists\Components\TextEntry::make('stock')
+                                ->label('Stock')
+                                ->badge()
+                                ->color(fn (Product $record): string => match (true) {
+                                    $record->stock <= 0 => 'danger',
+                                    $record->stock <= 5 => 'warning',
+                                    default => 'success',
+                                }),
+                            Infolists\Components\TextEntry::make('cost')
+                                ->label('Costo')
+                                ->money('MXN')
+                                ->icon('heroicon-m-arrow-down-circle')
+                                ->iconColor('gray'),
+                            Infolists\Components\TextEntry::make('price')
+                                ->label('Precio')
+                                ->money('MXN')
+                                ->icon('heroicon-m-arrow-up-circle')
+                                ->iconColor('success')
+                                ->weight('bold')
+                                ->color('success'),
+                            Infolists\Components\TextEntry::make('margin')
+                                ->label('Margen')
+                                ->getStateUsing(fn (Product $record): string => number_format($record->margin, 1) . '%')
+                                ->badge()
+                                ->color(fn (Product $record): string => match (true) {
+                                    $record->margin >= 30 => 'success',
+                                    $record->margin >= 15 => 'warning',
+                                    default => 'danger',
+                                }),
+                            Infolists\Components\TextEntry::make('value')
+                                ->label('Valor Total')
+                                ->getStateUsing(fn (Product $record): string => '$' . number_format($record->value, 2))
+                                ->icon('heroicon-m-banknotes')
+                                ->iconColor('primary')
+                                ->weight('bold')
+                                ->color('primary'),
+                        ])->columns(2),
+                    ]),
                 Actions\EditAction::make()
                     ->iconButton(),
                 Actions\DeleteAction::make()

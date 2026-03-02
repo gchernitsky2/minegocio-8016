@@ -19,6 +19,8 @@ class DailyCashFlowChart extends ChartWidget
 
     protected ?string $maxHeight = '260px';
 
+    protected static bool $isLazy = false;
+
     protected function getData(): array
     {
         $labels = [];

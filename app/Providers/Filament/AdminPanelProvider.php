@@ -46,6 +46,10 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make()
                     ->label(''),
                 NavigationGroup::make()
+                    ->label('Finanzas')
+                    ->icon('heroicon-o-banknotes')
+                    ->collapsible(),
+                NavigationGroup::make()
                     ->label('Inventario')
                     ->icon('heroicon-o-cube')
                     ->collapsible(),
@@ -79,46 +83,58 @@ class AdminPanelProvider extends PanelProvider
                             font-size: 1.15rem !important;
                             letter-spacing: -0.01em !important;
                         }
+                        /* ALL sidebar text + icons: ALWAYS white */
                         .fi-sidebar .fi-sidebar-group-label {
-                            color: rgba(167, 139, 250, 0.5) !important;
+                            color: rgba(255, 255, 255, 0.65) !important;
                             font-size: 0.6rem !important;
                             text-transform: uppercase !important;
                             letter-spacing: 0.1em !important;
                             font-weight: 700 !important;
                         }
-                        .fi-sidebar .fi-sidebar-item a {
-                            color: rgba(203, 213, 225, 0.7) !important;
+                        .fi-sidebar .fi-sidebar-item a,
+                        .fi-sidebar .fi-sidebar-item a span,
+                        .fi-sidebar .fi-sidebar-item a .fi-sidebar-item-label {
+                            color: #ffffff !important;
                             border-radius: 0.6rem !important;
                             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
                             margin: 0 0.35rem !important;
                         }
+                        .fi-sidebar .fi-sidebar-item a .fi-sidebar-item-icon {
+                            color: #ffffff !important;
+                        }
                         .fi-sidebar .fi-sidebar-item a:hover {
                             background: rgba(139, 92, 246, 0.12) !important;
-                            color: #e2e8f0 !important;
-                        }
-                        .fi-sidebar .fi-sidebar-item a.fi-active {
-                            background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(139, 92, 246, 0.2) 100%) !important;
-                            color: #fff !important;
-                            font-weight: 600 !important;
-                            box-shadow: 0 0 20px rgba(99, 102, 241, 0.1), inset 0 0 0 1px rgba(139, 92, 246, 0.2) !important;
-                        }
-                        .fi-sidebar .fi-sidebar-item a .fi-sidebar-item-icon {
-                            color: rgba(148, 163, 184, 0.5) !important;
-                        }
-                        .fi-sidebar .fi-sidebar-item a.fi-active .fi-sidebar-item-icon {
-                            color: #a78bfa !important;
+                            color: #ffffff !important;
                         }
                         .fi-sidebar .fi-sidebar-item a:hover .fi-sidebar-item-icon {
-                            color: #c4b5fd !important;
+                            color: #ffffff !important;
+                        }
+                        /* Active/selected item: white bg, dark text + icon */
+                        .fi-sidebar .fi-sidebar-item a.fi-active {
+                            background: rgba(255, 255, 255, 0.95) !important;
+                            font-weight: 600 !important;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
+                        }
+                        .fi-sidebar .fi-sidebar-item a.fi-active,
+                        .fi-sidebar .fi-sidebar-item a.fi-active span,
+                        .fi-sidebar .fi-sidebar-item a.fi-active .fi-sidebar-item-label {
+                            color: #1e1b4b !important;
+                        }
+                        .fi-sidebar .fi-sidebar-item a.fi-active .fi-sidebar-item-icon {
+                            color: #1e1b4b !important;
                         }
                         .fi-sidebar .fi-sidebar-group-toggle-button {
-                            color: rgba(148, 163, 184, 0.4) !important;
+                            color: #ffffff !important;
                         }
                         .fi-sidebar-nav-groups {
                             --c-50: 241 245 249;
                             --c-200: 148 163 184;
                             --c-400: 99 102 241;
                             --c-600: 79 70 229;
+                        }
+                        /* Keep sidebar open after navigation */
+                        .fi-sidebar {
+                            transition: none !important;
                         }
 
                         /* ── Top bar: blanca limpia con shadow sutil ── */
@@ -143,82 +159,194 @@ class AdminPanelProvider extends PanelProvider
                             color: #6b7280 !important;
                         }
 
-                        /* ── Stats widgets: glassmorphism ── */
+                        /* ── Stats widgets: blue gradient cards ── */
                         .fi-wi-stats-overview-stat {
                             border-radius: 1rem !important;
-                            border: 1px solid rgba(99, 102, 241, 0.08) !important;
-                            background: white !important;
-                            box-shadow: 0 1px 3px rgba(0,0,0,0.03), 0 8px 24px rgba(99,102,241,0.04) !important;
-                            transition: all 0.2s ease !important;
+                            border: none !important;
+                            background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 50%, #BFDBFE 100%) !important;
+                            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1), 0 1px 3px rgba(0,0,0,0.04) !important;
+                            padding: 0.6rem 0.5rem !important;
+                            overflow: hidden !important;
+                            transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+                            text-align: center !important;
+                            display: flex !important;
+                            flex-direction: column !important;
+                            align-items: center !important;
+                            justify-content: center !important;
                         }
                         .fi-wi-stats-overview-stat:hover {
-                            box-shadow: 0 4px 12px rgba(99,102,241,0.08), 0 12px 32px rgba(99,102,241,0.06) !important;
-                            transform: translateY(-1px) !important;
+                            transform: translateY(-2px) !important;
+                            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.18), 0 2px 6px rgba(0,0,0,0.06) !important;
+                            cursor: pointer !important;
+                        }
+                        /* Center inner content */
+                        .fi-wi-stats-overview-stat > * {
+                            justify-content: center !important;
+                            text-align: center !important;
+                            width: 100% !important;
+                            padding: 0 !important;
+                            margin: 0 !important;
+                        }
+                        /* Stat label */
+                        .fi-wi-stats-overview-stat-label {
+                            font-weight: 700 !important;
+                            font-size: 0.72rem !important;
+                            text-transform: uppercase !important;
+                            letter-spacing: 0.04em !important;
+                            color: #1E40AF !important;
+                            text-align: center !important;
+                            width: 100% !important;
+                        }
+                        /* Stat value (amount) — always fit inside card */
+                        .fi-wi-stats-overview-stat-value {
+                            font-weight: 800 !important;
+                            font-size: clamp(0.75rem, 2vw, 1.3rem) !important;
+                            color: #1E3A5F !important;
+                            line-height: 1.2 !important;
+                            white-space: nowrap !important;
+                            overflow: hidden !important;
+                            text-overflow: ellipsis !important;
+                            max-width: 100% !important;
+                            text-align: center !important;
+                            width: 100% !important;
+                            display: block !important;
+                            box-sizing: border-box !important;
+                        }
+                        /* Stat description */
+                        .fi-wi-stats-overview-stat-description {
+                            font-weight: 600 !important;
+                            font-size: 0.68rem !important;
+                            color: #3B82F6 !important;
+                            text-align: center !important;
+                            width: 100% !important;
+                            justify-content: center !important;
+                            white-space: nowrap !important;
+                            overflow: hidden !important;
+                            text-overflow: ellipsis !important;
+                        }
+                        /* Stat icon */
+                        .fi-wi-stats-overview-stat-icon {
+                            color: #3B82F6 !important;
+                            opacity: 0.7 !important;
+                        }
+                        /* Chart inside stat */
+                        .fi-wi-stats-overview-stat-chart {
+                            opacity: 0.6 !important;
                         }
 
                         /* ── Charts ── */
                         .fi-wi-chart {
                             border-radius: 1rem !important;
-                            border: 1px solid rgba(99, 102, 241, 0.08) !important;
-                            background: white !important;
-                            box-shadow: 0 1px 3px rgba(0,0,0,0.03), 0 8px 24px rgba(99,102,241,0.04) !important;
+                            border: none !important;
+                            background: linear-gradient(135deg, #ffffff 0%, #F0F5FF 100%) !important;
+                            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08), 0 1px 3px rgba(0,0,0,0.04) !important;
                         }
 
-                        /* ── Tables: elegante con header gradient ── */
+                        /* ── Tables ── */
                         .fi-ta {
                             border-radius: 1rem !important;
                             overflow: hidden !important;
-                            border: 1px solid rgba(99, 102, 241, 0.08) !important;
-                            box-shadow: 0 1px 3px rgba(0,0,0,0.03), 0 8px 24px rgba(99,102,241,0.04) !important;
+                            border: none !important;
                             background: white !important;
+                            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.06), 0 1px 3px rgba(0,0,0,0.03) !important;
                         }
                         .fi-ta-header-cell {
-                            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%) !important;
-                            color: #e0e7ff !important;
-                            font-weight: 600 !important;
+                            background: linear-gradient(135deg, #EFF6FF, #DBEAFE) !important;
+                            color: #1E40AF !important;
+                            font-weight: 700 !important;
                             text-transform: uppercase !important;
-                            font-size: 0.68rem !important;
-                            letter-spacing: 0.06em !important;
+                            font-size: 0.7rem !important;
+                            letter-spacing: 0.05em !important;
+                            border-bottom: 1px solid #BFDBFE !important;
                         }
                         .fi-ta-row:nth-child(even) {
-                            background: #fafaff !important;
+                            background: #F0F5FF !important;
                         }
                         .fi-ta-row:nth-child(odd) {
                             background: #ffffff !important;
                         }
                         .fi-ta-row {
-                            transition: all 0.15s ease !important;
+                            transition: background 0.15s ease !important;
                         }
                         .fi-ta-row:hover {
-                            background: #eef2ff !important;
+                            background: #DBEAFE !important;
                         }
 
                         /* ── Forms ── */
                         .fi-section {
-                            border: 1px solid rgba(99, 102, 241, 0.08) !important;
+                            border: none !important;
                             border-radius: 1rem !important;
-                            box-shadow: 0 1px 3px rgba(0,0,0,0.03), 0 8px 24px rgba(99,102,241,0.04) !important;
-                            background: white !important;
+                            background: linear-gradient(135deg, #ffffff 0%, #F0F5FF 100%) !important;
+                            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.06), 0 1px 3px rgba(0,0,0,0.03) !important;
                         }
 
-                        /* ── Buttons: gradient premium ── */
-                        .fi-btn-primary {
-                            border-radius: 0.6rem !important;
+                        /* ── Compact form fields ── */
+                        .fi-fo-field-wrp {
+                            gap: 0.25rem !important;
+                        }
+                        .fi-input, .fi-select-input, .fi-fo-textarea textarea {
+                            padding-top: 0.45rem !important;
+                            padding-bottom: 0.45rem !important;
+                            font-size: 0.85rem !important;
+                        }
+                        .fi-fo-field-wrp label {
+                            font-size: 0.78rem !important;
                             font-weight: 600 !important;
-                            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25) !important;
-                            transition: all 0.2s ease !important;
+                            color: #475569 !important;
                         }
-                        .fi-btn-primary:hover {
-                            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35) !important;
-                            transform: translateY(-1px) !important;
+                        .fi-section-content {
+                            padding: 0.75rem !important;
+                        }
+                        .fi-section-header {
+                            padding: 0.6rem 0.75rem !important;
+                        }
+                        .fi-compact .fi-section-content {
+                            padding: 0.5rem 0.75rem !important;
                         }
 
-                        /* ── Pagination ── */
-                        .fi-pagination-item-btn {
+                        /* ── Infolist entries (view modal) ── */
+                        .fi-in-entry-wrp {
+                            padding: 0.5rem 0 !important;
+                        }
+
+                        /* ── Modal improvements ── */
+                        .fi-modal-window {
+                            border-radius: 0.75rem !important;
+                            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+                        }
+                        .fi-modal-header {
+                            border-bottom: 1px solid #e2e8f0 !important;
+                            padding: 0.85rem 1.25rem !important;
+                        }
+                        .fi-modal-heading {
+                            font-size: 1rem !important;
+                            font-weight: 700 !important;
+                            color: #1e293b !important;
+                        }
+                        .fi-modal-footer {
+                            border-top: 1px solid #e2e8f0 !important;
+                            padding: 0.65rem 1.25rem !important;
+                            background: #f8fafc !important;
+                        }
+
+                        /* ── Action buttons in table ── */
+                        .fi-ta-actions {
+                            gap: 0.15rem !important;
+                        }
+                        .fi-icon-btn {
+                            transition: all 0.15s ease !important;
+                        }
+                        .fi-icon-btn:hover {
+                            transform: scale(1.08) !important;
+                        }
+
+                        /* ── Buttons ── */
+                        .fi-btn-primary {
                             border-radius: 0.5rem !important;
+                            font-weight: 600 !important;
                         }
 
-                        /* ── Scrollbar personalizado ── */
+                        /* ── Scrollbar ── */
                         .fi-sidebar::-webkit-scrollbar {
                             width: 4px;
                         }
@@ -226,26 +354,23 @@ class AdminPanelProvider extends PanelProvider
                             background: transparent;
                         }
                         .fi-sidebar::-webkit-scrollbar-thumb {
-                            background: rgba(139, 92, 246, 0.2);
+                            background: rgba(255, 255, 255, 0.15);
                             border-radius: 4px;
                         }
 
                         /* ── Modal ── */
                         .fi-modal-window {
-                            border-radius: 1rem !important;
-                        }
-
-                        /* ── Badges ── */
-                        .fi-badge {
-                            border-radius: 0.5rem !important;
-                            font-weight: 600 !important;
-                        }
-
-                        /* ── Tabs ── */
-                        .fi-tabs-tab {
-                            transition: all 0.15s ease !important;
+                            border-radius: 0.75rem !important;
                         }
                     </style>
+                    <script>
+                        // Keep sidebar expanded after Livewire/Turbolinks navigation
+                        document.addEventListener("livewire:navigated", function () {
+                            if (window.Alpine && Alpine.store("sidebar")) {
+                                Alpine.store("sidebar").open();
+                            }
+                        });
+                    </script>
                 '),
             )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')

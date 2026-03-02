@@ -6,6 +6,7 @@ namespace App\Filament\Pages;
 
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
+use App\Models\InventoryMovement;
 use App\Models\Product;
 use App\Models\Sale;
 use Carbon\Carbon;
@@ -25,21 +26,200 @@ class Reports extends Page
 
     public string $tab = 'mensual';
 
+    /** @var array<string, array<string, mixed>> */
+    protected $queryString = [
+        'tab' => ['except' => 'mensual'],
+    ];
+
     public ?int $selectedYear = null;
 
     public ?int $selectedMonth = null;
 
+    public ?string $selectedDate = null;
+
     public bool $showChart = true;
+
+    // Drill-down modal
+    public bool $showDetailModal = false;
+
+    public string $detailTitle = '';
+
+    public string $detailType = '';
+
+    public array $detailRows = [];
+
+    public float $detailTotal = 0;
 
     public function mount(): void
     {
         $this->selectedYear = (int) now()->year;
         $this->selectedMonth = (int) now()->month;
+        $this->selectedDate = now()->format('Y-m-d');
     }
 
     public function toggleChart(): void
     {
         $this->showChart = ! $this->showChart;
+    }
+
+    public function closeDetailModal(): void
+    {
+        $this->showDetailModal = false;
+        $this->detailRows = [];
+    }
+
+    public function loadMonthlyDetail(int $month, string $type): void
+    {
+        $monthName = Carbon::create($this->selectedYear, $month, 1)->translatedFormat('F');
+
+        if ($type === 'sales') {
+            $this->detailTitle = "Ventas — {$monthName} {$this->selectedYear}";
+            $this->detailType = 'sales';
+            $rows = Sale::whereMonth('date', $month)
+                ->whereYear('date', $this->selectedYear)
+                ->orderBy('date')
+                ->get();
+            $this->detailRows = $rows->map(fn ($r) => [
+                'id' => $r->id,
+                'date' => $r->date->format('d/m/Y'),
+                'description' => $r->description ?? '-',
+                'category' => null,
+                'amount' => (float) $r->amount,
+            ])->toArray();
+        } else {
+            $this->detailTitle = "Gastos — {$monthName} {$this->selectedYear}";
+            $this->detailType = 'expenses';
+            $rows = Expense::with('category')
+                ->whereMonth('date', $month)
+                ->whereYear('date', $this->selectedYear)
+                ->orderBy('date')
+                ->get();
+            $this->detailRows = $rows->map(fn ($r) => [
+                'id' => $r->id,
+                'date' => $r->date->format('d/m/Y'),
+                'description' => $r->description ?? '-',
+                'category' => $r->category?->name ?? 'Sin categoria',
+                'amount' => (float) $r->amount,
+            ])->toArray();
+        }
+
+        $this->detailTotal = array_sum(array_column($this->detailRows, 'amount'));
+        $this->showDetailModal = true;
+    }
+
+    public function loadAnnualDetail(int $year, string $type): void
+    {
+        if ($type === 'sales') {
+            $this->detailTitle = "Ventas — {$year}";
+            $this->detailType = 'sales';
+            $rows = Sale::whereYear('date', $year)->orderBy('date')->get();
+            $this->detailRows = $rows->map(fn ($r) => [
+                'id' => $r->id,
+                'date' => $r->date->format('d/m/Y'),
+                'description' => $r->description ?? '-',
+                'category' => null,
+                'amount' => (float) $r->amount,
+            ])->toArray();
+        } else {
+            $this->detailTitle = "Gastos — {$year}";
+            $this->detailType = 'expenses';
+            $rows = Expense::with('category')->whereYear('date', $year)->orderBy('date')->get();
+            $this->detailRows = $rows->map(fn ($r) => [
+                'id' => $r->id,
+                'date' => $r->date->format('d/m/Y'),
+                'description' => $r->description ?? '-',
+                'category' => $r->category?->name ?? 'Sin categoria',
+                'amount' => (float) $r->amount,
+            ])->toArray();
+        }
+
+        $this->detailTotal = array_sum(array_column($this->detailRows, 'amount'));
+        $this->showDetailModal = true;
+    }
+
+    public function loadDailyDetail(string $date, string $type): void
+    {
+        $carbonDate = Carbon::createFromFormat('d/m/Y', $date);
+        $formatted = $carbonDate->translatedFormat('d M Y');
+
+        if ($type === 'sales') {
+            $this->detailTitle = "Ventas — {$formatted}";
+            $this->detailType = 'sales';
+            $rows = Sale::whereDate('date', $carbonDate)->orderBy('date')->get();
+            $this->detailRows = $rows->map(fn ($r) => [
+                'id' => $r->id,
+                'date' => $r->date->format('d/m/Y'),
+                'description' => $r->description ?? '-',
+                'category' => null,
+                'amount' => (float) $r->amount,
+            ])->toArray();
+        } else {
+            $this->detailTitle = "Gastos — {$formatted}";
+            $this->detailType = 'expenses';
+            $rows = Expense::with('category')->whereDate('date', $carbonDate)->orderBy('date')->get();
+            $this->detailRows = $rows->map(fn ($r) => [
+                'id' => $r->id,
+                'date' => $r->date->format('d/m/Y'),
+                'description' => $r->description ?? '-',
+                'category' => $r->category?->name ?? 'Sin categoria',
+                'amount' => (float) $r->amount,
+            ])->toArray();
+        }
+
+        $this->detailTotal = array_sum(array_column($this->detailRows, 'amount'));
+        $this->showDetailModal = true;
+    }
+
+    public function loadCategoryDetail(string $categoryName): void
+    {
+        $this->detailTitle = "Gastos — {$categoryName}";
+        $this->detailType = 'expenses';
+
+        $query = Expense::with('category')
+            ->whereHas('category', fn ($q) => $q->where('name', $categoryName));
+
+        if ($this->selectedMonth && $this->selectedYear) {
+            $query->whereMonth('date', $this->selectedMonth)
+                ->whereYear('date', $this->selectedYear);
+        }
+
+        $rows = $query->orderBy('date')->get();
+        $this->detailRows = $rows->map(fn ($r) => [
+            'id' => $r->id,
+            'date' => $r->date->format('d/m/Y'),
+            'description' => $r->description ?? '-',
+            'category' => $r->category?->name ?? 'Sin categoria',
+            'amount' => (float) $r->amount,
+        ])->toArray();
+
+        $this->detailTotal = array_sum(array_column($this->detailRows, 'amount'));
+        $this->showDetailModal = true;
+    }
+
+    public function loadProductDetail(string $productName): void
+    {
+        $this->detailTitle = "Movimientos — {$productName}";
+        $this->detailType = 'inventory';
+
+        $product = Product::where('name', $productName)->first();
+        if (! $product) {
+            return;
+        }
+
+        $rows = InventoryMovement::where('product_id', $product->id)
+            ->orderByDesc('date')
+            ->get();
+
+        $this->detailRows = $rows->map(fn ($r) => [
+            'id' => $r->id,
+            'date' => $r->date->format('d/m/Y'),
+            'description' => $r->reason ?? '-',
+            'category' => $r->type === 'entrada' ? 'Entrada' : 'Salida',
+            'amount' => (float) $r->quantity,
+        ])->toArray();
+
+        $this->detailTotal = $rows->sum('quantity');
+        $this->showDetailModal = true;
     }
 
     public function getMonthlyData(): array
@@ -179,6 +359,34 @@ class Reports extends Page
             'value' => $p->value,
             'margin' => $p->margin,
         ])->toArray();
+    }
+
+    public function getDailyFlowData(): array
+    {
+        $date = Carbon::parse($this->selectedDate);
+        $rows = [];
+
+        $sales = Sale::whereDate('date', $date)->orderBy('id')->get();
+        foreach ($sales as $sale) {
+            $rows[] = [
+                'description' => $sale->description ?? 'Venta',
+                'category' => 'Venta',
+                'income' => (float) $sale->amount,
+                'expense' => 0,
+            ];
+        }
+
+        $expenses = Expense::with('category')->whereDate('date', $date)->orderBy('id')->get();
+        foreach ($expenses as $expense) {
+            $rows[] = [
+                'description' => $expense->description ?? 'Gasto',
+                'category' => $expense->category?->name ?? 'Sin categoria',
+                'income' => 0,
+                'expense' => (float) $expense->amount,
+            ];
+        }
+
+        return $rows;
     }
 
     public function getYearOptions(): array

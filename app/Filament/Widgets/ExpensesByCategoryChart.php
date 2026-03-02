@@ -18,6 +18,8 @@ class ExpensesByCategoryChart extends ChartWidget
 
     protected ?string $maxHeight = '300px';
 
+    protected static bool $isLazy = false;
+
     protected function getData(): array
     {
         $now = Carbon::now();

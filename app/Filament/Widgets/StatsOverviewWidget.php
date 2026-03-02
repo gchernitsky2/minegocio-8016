@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Pages\Reports;
+use App\Filament\Resources\ProductResource;
 use App\Models\Expense;
 use App\Models\Product;
 use App\Models\Sale;
@@ -14,6 +16,8 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 class StatsOverviewWidget extends BaseWidget
 {
     protected static ?int $sort = 1;
+
+    protected static bool $isLazy = false;
 
     protected function getStats(): array
     {
@@ -43,34 +47,41 @@ class StatsOverviewWidget extends BaseWidget
         $lowStockProducts = Product::lowStock()->count();
         $inventoryValue = (float) (Product::selectRaw('SUM(stock * cost) as total')->value('total') ?? 0);
 
+        $reportsUrl = Reports::getUrl();
+
         return [
             Stat::make('Ventas del mes', '$' . number_format($salesThisMonth, 2))
                 ->description($this->getChangeDescription($salesThisMonth, $salesLastMonth))
                 ->descriptionIcon($this->getChangeIcon($salesThisMonth, $salesLastMonth))
                 ->color('success')
-                ->chart($this->getDailyTrend(Sale::class)),
-
-            Stat::make('Gastos del mes', '$' . number_format($expensesThisMonth, 2))
-                ->description($this->getChangeDescription($expensesThisMonth, $expensesLastMonth))
-                ->descriptionIcon($this->getChangeIcon($expensesThisMonth, $expensesLastMonth))
-                ->color('danger')
-                ->chart($this->getDailyTrend(Expense::class)),
+                ->chart($this->getDailyTrend(Sale::class))
+                ->url($reportsUrl . '?tab=mensual'),
 
             Stat::make('Balance', '$' . number_format($balanceThisMonth, 2))
                 ->description($this->getChangeDescription($balanceThisMonth, $balanceLastMonth))
                 ->descriptionIcon($this->getChangeIcon($balanceThisMonth, $balanceLastMonth))
                 ->color($balanceThisMonth >= 0 ? 'success' : 'danger')
-                ->chart($this->getBalanceTrend()),
+                ->chart($this->getBalanceTrend())
+                ->url($reportsUrl . '?tab=caja'),
+
+            Stat::make('Gastos del mes', '$' . number_format($expensesThisMonth, 2))
+                ->description($this->getChangeDescription($expensesThisMonth, $expensesLastMonth))
+                ->descriptionIcon($this->getChangeIcon($expensesThisMonth, $expensesLastMonth))
+                ->color('danger')
+                ->chart($this->getDailyTrend(Expense::class))
+                ->url($reportsUrl . '?tab=categorias'),
 
             Stat::make('Productos', (string) $totalProducts)
                 ->description($lowStockProducts > 0 ? $lowStockProducts . ' con stock bajo' : 'Stock saludable')
                 ->descriptionIcon($lowStockProducts > 0 ? 'heroicon-m-exclamation-triangle' : 'heroicon-m-check-circle')
-                ->color($lowStockProducts > 0 ? 'warning' : 'info'),
+                ->color($lowStockProducts > 0 ? 'warning' : 'info')
+                ->url(ProductResource::getUrl()),
 
             Stat::make('Valor inventario', '$' . number_format($inventoryValue, 2))
                 ->description($totalProducts . ' productos')
                 ->descriptionIcon('heroicon-m-cube')
-                ->color('info'),
+                ->color('info')
+                ->url($reportsUrl . '?tab=inventario'),
         ];
     }
 
