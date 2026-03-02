@@ -1,32 +1,37 @@
-FROM php:8.3-fpm
+FROM composer:2 AS deps
 
-RUN apt-get update && apt-get install -y \
-    git curl unzip libzip-dev libpng-dev libonig-dev libxml2-dev libsqlite3-dev \
-    && docker-php-ext-install pdo pdo_sqlite pdo_mysql mbstring zip exif pcntl bcmath gd \
-    && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY composer.json composer.lock ./
 
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-WORKDIR /var/www/html
+# Install without scripts to avoid needing full app
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 
 COPY . .
 
-# Create temp .env so artisan scripts work during composer install
-RUN cp .env.example .env \
-    && php -r "echo 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL;" >> .env
+# Now generate autoload with full app present
+RUN composer dump-autoload --no-dev --optimize
+
+# ─────────────────────────────────────
+
+FROM php:8.3-fpm
+
+RUN apt-get update && apt-get install -y \
+    libzip-dev libpng-dev libonig-dev libxml2-dev libsqlite3-dev \
+    && docker-php-ext-install pdo pdo_sqlite pdo_mysql mbstring zip bcmath gd \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /var/www/html
+
+COPY --from=deps /app .
 
 RUN mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache/data \
-    bootstrap/cache database
-
-# Install deps — allow post-scripts to fail (filament:upgrade may fail without DB)
-RUN COMPOSER_MEMORY_LIMIT=-1 composer install --no-dev --optimize-autoloader --no-interaction 2>&1; \
-    test -f vendor/autoload.php && echo "vendor OK" || exit 1
-
-RUN touch database/database.sqlite \
-    && php artisan migrate --force 2>&1 || true
-
-# Clean temp .env, set permissions
-RUN rm -f .env \
+    bootstrap/cache database \
+    && touch database/database.sqlite \
+    && cp .env.example .env \
+    && php -r "echo 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL;" >> .env \
+    && php artisan package:discover --ansi 2>/dev/null || true \
+    && php artisan migrate --force 2>/dev/null || true \
+    && rm -f .env \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 storage bootstrap/cache database
 
